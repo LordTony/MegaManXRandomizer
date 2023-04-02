@@ -1,6 +1,6 @@
 import zipfile
-import random
 import argparse
+from random import shuffle
 
 # Helper Functions
 def writeAt(address, writeMe, rom):
@@ -29,7 +29,8 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('original_rom')
 parser.add_argument('-o', '--out', type=argparse.FileType('wb'), help='output file')
-parser.add_argument('-z', '--zip-output', action='store_true', help='Puts the output into a .zip file')
+# TODO - maybe actually put this in
+# parser.add_argument('-z', '--zip-output', action='store_true', help='Puts the output into a .zip file')
 parser.add_argument('-n', '--no-self-weakness', action='store_true', help='Bosses will not drop their own weaknesses')
 parser.add_argument('-s', '--strict-shuffle', action="store_true", help='Bosses will not drop their usual weapons')
 parser.add_argument('-d', '--dash-boot-start', action='store_true', help="Start the game out with dash boots so chill penguin 1st isn't required")
@@ -59,9 +60,9 @@ else:
 
 # Weapon Choose Selection Table
 bossOrder = [1,2,3,4,5,6,7,8]
-random.shuffle(bossOrder)
+shuffle(bossOrder)
 while((args.strict_shuffle and not isStrictShuffle(bossOrder)) or (args.no_self_weakness and hasSelfWeakness(bossOrder))):
-    random.shuffle(bossOrder)
+    shuffle(bossOrder)
 print(bossOrder)
 writeAt(0x27191, bossOrder, gameData)
 
@@ -139,13 +140,12 @@ writeAt(0x4947, [0x20, 0x10, 0xFC], gameData)
 writeAt(0x7C10, bossAlreadyDeadSub, gameData)
 
 # Flame Mammoth Spawn Fire Checks
-spawnFirePositions = [0x3c72, 0x3509, 0x17a38, 0x218a2, 0x39e97, 0x3bd76]
+spawnFireAddrs = [0x3c72, 0x3509, 0x17a38, 0x218a2, 0x39e97, 0x3bd76]
 offsetFromChillPengin = (0xE - ((bossOrder[7] - 1) * 2))
-for pos in spawnFirePositions:
+for pos in spawnFireAddrs:
     writeAt(pos, [gameData[pos] - offsetFromChillPengin], gameData)
 
 # Spark Mandrill Spawn Electric Checks
-
 spawnSparkHazardAddrs = [
     0x3c84,
     0x34fd, 
@@ -168,5 +168,5 @@ offsetFromLaunchOctopus = (bossOrder[0] - 1) * 2
 writeAt(spawnWaterAddr, [gameData[spawnWaterAddr] + offsetFromLaunchOctopus], gameData)
 
 # Write the file
-outStream = args.out if args.out else open('Mega Man X (USA) _Randomized_.sfc', "wb")
+outStream = args.out if args.out else open('Mega Man X (USA) (Rev 1) _Randomized_.sfc', "wb")
 outStream.write(bytes(gameData))
